@@ -1,0 +1,33 @@
+@model FoodTech.ViewModels.ManufacturerVm
+
+<tr data-id="@Model.ManufacturerId">
+    <td>@Model.Name</td>
+    <td>@Model.Country</td>
+    <td>
+        @if (!string.IsNullOrEmpty(Model.Website))
+        {
+            <a href="@Model.Website" target="_blank">@Model.Website</a>
+        }
+    </td>
+    <td>
+        @Model.ContactPerson<br />
+        @Model.ContactPhone<br />
+        @Model.ContactEmail
+    </td>
+    <td>
+        @Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")<br />
+        <small>@Model.CreatedBy</small>
+    </td>
+
+    <td class="text-end">
+        <button class="btn btn-sm btn-warning edit-manufacturer-btn" data-id="@Model.ManufacturerId">
+            <i class="bi bi-pencil"></i>
+        </button>
+
+        <button class="btn btn-sm btn-danger delete-manufacturer-btn"
+                data-id="@Model.ManufacturerId"
+                data-name="@Model.Name">
+            <i class="bi bi-trash"></i>
+        </button>
+    </td>
+</tr>

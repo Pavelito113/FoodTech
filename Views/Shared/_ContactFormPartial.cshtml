@@ -1,0 +1,176 @@
+@using Microsoft.AspNetCore.Identity
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject FoodTech.Services.UserClaimsService UserClaimsService
+
+@{
+    var userInfo = await UserClaimsService.GetUserInfoAsync();
+    string userName = userInfo.Name;
+    string userEmail = userInfo.Email;
+    string userCompany = userInfo.Company;
+    string userPhone = userInfo.Phone;
+    bool isAuth = !string.IsNullOrEmpty(userName);
+}
+
+<!-- 🌐 Модальное окно "Запросить оборудование" -->
+<div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <!-- Заголовок -->
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="contactModalLabel">
+                    <i class="bi bi-envelope me-2"></i>Запрос по оборудованию
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+
+            <!-- Краткая информация -->
+            <div class="modal-header-border bg-light py-2 px-4">
+                <p class="text-muted mb-0 small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Вы запрашиваете: <strong id="selectedEquipmentName" class="text-dark">не выбрано</strong>
+                </p>
+            </div>
+
+            <!-- Тело -->
+            <div class="modal-body">
+                <form id="contactForm"
+                      asp-controller="Home"
+                      asp-action="RequestCreate"
+                      method="post"
+                      enctype="multipart/form-data"
+                      novalidate
+                      class="needs-validation">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" name="EquipmentId" id="formEquipmentId" />
+                    <input type="hidden" name="EquipmentName" id="formEquipmentName" /> 
+                    <input type="hidden" name="SourceUrl" id="formSourceUrl" value="@Context.Request.Path" />
+
+                    <!-- Антиспам -->
+                    <input type="text" name="Honeypot" class="d-none" tabindex="-1" autocomplete="off" />
+
+                    <div class="row g-3">
+                        <!-- Имя -->
+                        <div class="col-12">
+                            <label for="formName" class="form-label">
+                                <i class="bi bi-person me-1"></i>Имя <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="formName"
+                                   name="Name"
+                                   required
+                                   maxlength="240"
+                                   placeholder="Введите ваше имя"
+                                   value="@userName"
+                                   @(isAuth ? "readonly" : "")>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-md-6">
+                            <label for="formEmail" class="form-label">
+                                <i class="bi bi-envelope me-1"></i>Email
+                            </label>
+                            <input type="email"
+                                   class="form-control"
+                                   id="formEmail"
+                                   name="Email"
+                                   maxlength="400"
+                                   placeholder="email@example.com"
+                                   value="@userEmail"
+                                   @(isAuth ? "readonly" : "")>
+                        </div>
+
+                        <!-- Телефон -->
+                        <div class="col-md-6">
+                            <label for="formPhone" class="form-label">
+                                <i class="bi bi-telephone me-1"></i>Телефон
+                            </label>
+                            <input type="tel"
+                                   class="form-control"
+                                   id="formPhone"
+                                   name="Phone"
+                                   maxlength="100"
+                                   placeholder="+7 (XXX) XXX-XX-XX"
+                                   value="@userPhone"
+                                   @(isAuth ? "readonly" : "")>
+                        </div>
+
+                        <!-- Компания -->
+                        <div class="col-12">
+                            <label for="formCompany" class="form-label">
+                                <i class="bi bi-building me-1"></i>Компания
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="formCompany"
+                                   name="Company"
+                                   maxlength="400"
+                                   placeholder="Название вашей компании"
+                                   value="@userCompany"
+                                   @(isAuth ? "readonly" : "")>
+                        </div>
+
+                        <!-- Сообщение -->
+                        <div class="col-12">
+                            <label for="formMessage" class="form-label">
+                                <i class="bi bi-chat-text me-1"></i>Сообщение <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control"
+                                      id="formMessage"
+                                      name="Message"
+                                      rows="4"
+                                      required
+                                      placeholder="Опишите ваш запрос..."></textarea>
+                        </div>
+
+                        <!-- Согласие -->
+                        @if (!isAuth)
+                        {
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                                    <label class="form-check-label" for="agreeTerms">
+                                        Я согласен на обработку персональных данных в соответствии с
+                                        <a href="/Home/Privacy" target="_blank" class="text-decoration-none">политикой конфиденциальности</a>
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Сообщения -->
+                    <div class="mt-4">
+                        <div class="alert alert-success d-none alert-dismissible fade show" id="successAlert" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <span id="successMessage"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+
+                        <div class="alert alert-danger d-none alert-dismissible fade show" id="errorAlert" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <span id="errorMessage"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    </div>
+
+                    <!-- Кнопка -->
+                    <div class="mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary btn-lg w-100 py-2" id="submitContactForm">
+                            <i class="bi bi-send me-2"></i>
+                            <span class="submit-text">Отправить запрос</span>
+                            <div class="spinner-border spinner-border-sm d-none ms-2" role="status">
+                                <span class="visually-hidden">Отправка...</span>
+                            </div>
+                        </button>
+                        <div class="form-text text-center mt-2">
+                            Ответим в течение 1 рабочего дня
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

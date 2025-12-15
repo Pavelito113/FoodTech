@@ -1,0 +1,53 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model List<FoodTech.Models.EquipmentCategory>
+
+<div class="container mt-3" id="editCategories">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5><i class="bi bi-tags me-2"></i>Управление категориями</h5>
+        <button class="btn btn-primary btn-sm" id="btnAddCategory">
+            <i class="bi bi-plus-circle me-1"></i>Добавить категорию
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th width="80">ID</th>
+                    <th>Название категории</th>
+                    <th width="120" class="text-center">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var category in Model)
+                {
+                    <tr data-id="@category.EquipmentCategoryId">
+                        <td class="text-muted">@category.EquipmentCategoryId</td>
+                        <td>
+                            <span class="view-name">@category.Name</span>
+                            <input type="text" class="form-control form-control-sm edit-input d-none" value="@category.Name" />
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group view-buttons">
+                                <button class="btn btn-outline-primary btn-sm btn-edit" title="Редактировать">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm btn-del" title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                            <div class="btn-group edit-buttons d-none">
+                                <button class="btn btn-success btn-sm btn-save" title="Сохранить">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                                <button class="btn btn-secondary btn-sm btn-cancel" title="Отмена">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

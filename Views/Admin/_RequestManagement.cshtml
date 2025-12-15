@@ -1,0 +1,437 @@
+@model List<FoodTech.ViewModels.ContactRequestVm>
+
+@{
+    ViewData["Title"] = "Запросы клиентов";
+    var withEquipment = Model.Where(m => m.EquipmentId != null).ToList();
+    var withoutEquipment = Model.Where(m => m.EquipmentId == null).ToList();
+}
+
+<div class="container-fluid mt-3 px-2 px-md-3">
+    <!-- Заголовок -->
+    <div class="mb-4">
+        <h1 class="h4 fw-semibold mb-1 d-flex align-items-center gap-2">
+            <i class="bi bi-inbox text-primary"></i>
+            Запросы от клиентов
+        </h1>
+        <p class="text-muted small mb-0">
+            <span class="d-inline-block me-3">
+                <i class="bi bi-tools text-primary me-1"></i>С оборудованием: <strong>@withEquipment.Count</strong>
+            </span>
+            <span class="d-inline-block">
+                <i class="bi bi-person-lines-fill text-secondary me-1"></i>Общие: <strong>@withoutEquipment.Count</strong>
+            </span>
+        </p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info border-0 shadow-sm">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-info-circle fs-5 me-3"></i>
+                <div>
+                    <p class="mb-1 fw-medium">Пока нет обращений</p>
+                    <p class="mb-0 small text-muted">Новые запросы от клиентов появятся здесь</p>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- ЗАПРОСЫ С ОБОРУДОВАНИЕМ -->
+        @if (withEquipment.Any())
+        {
+            <div class="mb-4">
+                <div class="d-flex align-items-center mb-3">
+                    <h2 class="h5 fw-semibold mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-tools text-primary"></i>
+                        <span class="d-none d-sm-inline">Запросы по оборудованию</span>
+                        <span class="d-sm-none">Оборудование</span>
+                    </h2>
+                    <span class="badge bg-primary-subtle text-primary ms-2">@withEquipment.Count</span>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <!-- Desktop view -->
+                    <div class="table-responsive d-none d-lg-block">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr class="table-light">
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-3">Дата</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-3">Клиент</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-3">Контакты</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-3">Оборудование</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-3">Статус</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-3 text-center">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in withEquipment)
+                                {
+                                    <tr class="border-bottom">
+                                        <td class="py-2 px-3">
+                                            <div class="small text-muted">@r.CreatedAt.ToString("dd.MM.yy")</div>
+                                            <div class="small">@r.CreatedAt.ToString("HH:mm")</div>
+                                        </td>
+                                        <td class="py-2 px-3">
+                                            <div class="fw-medium">@r.Name</div>
+                                            @if (!string.IsNullOrWhiteSpace(r.Company))
+                                            {
+                                                <div class="small text-muted">@r.Company</div>
+                                            }
+                                        </td>
+                                        <td class="py-2 px-3">
+                                            <div class="small">
+                                                <a href="mailto:@r.Email" class="text-decoration-none">@r.Email</a>
+                                            </div>
+                                            <div class="small text-muted">@r.Phone</div>
+                                        </td>
+                                        <td class="py-2 px-3">
+                                            <div class="small fw-medium">@(r.EquipmentName ?? "—")</div>
+                                            @if (!string.IsNullOrWhiteSpace(r.Message) && r.Message.Length > 40)
+                                            {
+                                                <div class="small text-muted mt-1">@r.Message.Substring(0, 40)...</div>
+                                            }
+                                            else if (!string.IsNullOrWhiteSpace(r.Message))
+                                            {
+                                                <div class="small text-muted mt-1">@r.Message</div>
+                                            }
+                                        </td>
+                                        <td class="py-2 px-3">
+                                            <select class="form-select form-select-sm select-status w-auto" data-id="@r.ContactRequestId">
+                                                <option value="New" selected="@(r.Status == "New")" class="text-primary fw-medium">🟢 Новый</option>
+                                                <option value="InProgress" selected="@(r.Status == "InProgress")" class="text-warning fw-medium">🟡 В работе</option>
+                                                <option value="Done" selected="@(r.Status == "Done")" class="text-success fw-medium">✅ Завершён</option>
+                                            </select>
+                                        </td>
+                                        <td class="py-2 px-3 text-center">
+                                            <div class="d-flex justify-content-center gap-1">
+                                                <button class="btn btn-sm btn-outline-primary btn-details" data-id="@r.ContactRequestId" title="Подробнее">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger btn-delete" data-id="@r.ContactRequestId" title="Удалить">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Tablet view -->
+                    <div class="table-responsive d-none d-md-block d-lg-none">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr class="table-light">
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-2">Дата</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-2">Клиент</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-2">Оборудование</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-2">Статус</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-2 text-center">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in withEquipment)
+                                {
+                                    <tr class="border-bottom">
+                                        <td class="py-2 px-2">
+                                            <div class="small">@r.CreatedAt.ToString("dd.MM.yy")</div>
+                                        </td>
+                                        <td class="py-2 px-2">
+                                            <div class="fw-medium">@r.Name</div>
+                                            <div class="small text-muted">@r.Phone</div>
+                                        </td>
+                                        <td class="py-2 px-2">
+                                            <div class="small">@(r.EquipmentName?.Substring(0, Math.Min(20, r.EquipmentName.Length)) ?? "—")</div>
+                                        </td>
+                                        <td class="py-2 px-2">
+                                            <select class="form-select form-select-sm select-status w-auto" data-id="@r.ContactRequestId">
+                                                <option value="New" selected="@(r.Status == "New")">Н</option>
+                                                <option value="InProgress" selected="@(r.Status == "InProgress")">ВР</option>
+                                                <option value="Done" selected="@(r.Status == "Done")">З</option>
+                                            </select>
+                                        </td>
+                                        <td class="py-2 px-2 text-center">
+                                            <div class="d-flex justify-content-center gap-1">
+                                                <button class="btn btn-sm btn-outline-primary btn-details" data-id="@r.ContactRequestId">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger btn-delete" data-id="@r.ContactRequestId">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Mobile view -->
+                    <div class="d-md-none">
+                        <div class="list-group list-group-flush">
+                            @foreach (var r in withEquipment)
+                            {
+                                <div class="list-group-item border-0 py-3 px-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <div class="fw-medium mb-1">@r.Name</div>
+                                            <div class="small text-muted d-flex align-items-center gap-2">
+                                                <span><i class="bi bi-clock"></i> @r.CreatedAt.ToString("dd.MM.yy HH:mm")</span>
+                                                @if (!string.IsNullOrWhiteSpace(r.Company))
+                                                {
+                                                    <span>•</span>
+                                                    <span>@r.Company</span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="d-flex gap-1">
+                                            <button class="btn btn-sm btn-outline-primary btn-details" data-id="@r.ContactRequestId">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger btn-delete" data-id="@r.ContactRequestId">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <div class="small text-muted">Оборудование</div>
+                                        <div class="fw-medium">@(r.EquipmentName ?? "—")</div>
+                                    </div>
+                                    
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <div class="small text-muted">Контакты</div>
+                                            <div class="small">
+                                                <a href="mailto:@r.Email" class="text-decoration-none d-block">@r.Email</a>
+                                                <span class="d-block">@r.Phone</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="small text-muted">Статус</div>
+                                            <select class="form-select form-select-sm select-status mt-1" data-id="@r.ContactRequestId">
+                                                <option value="New" selected="@(r.Status == "New")">🟢 Новый</option>
+                                                <option value="InProgress" selected="@(r.Status == "InProgress")">🟡 В работе</option>
+                                                <option value="Done" selected="@(r.Status == "Done")">✅ Завершён</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    @if (!string.IsNullOrWhiteSpace(r.Message))
+                                    {
+                                        <div>
+                                            <div class="small text-muted">Сообщение</div>
+                                            <div class="small mt-1">@r.Message.Substring(0, Math.Min(60, r.Message.Length))@(r.Message.Length > 60 ? "..." : "")</div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- ОБЩИЕ ОБРАЩЕНИЯ -->
+        @if (withoutEquipment.Any())
+        {
+            <div>
+                <div class="d-flex align-items-center mb-3">
+                    <h2 class="h5 fw-semibold mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-person-lines-fill text-secondary"></i>
+                        <span class="d-none d-sm-inline">Общие обращения</span>
+                        <span class="d-sm-none">Обращения</span>
+                    </h2>
+                    <span class="badge bg-secondary-subtle text-secondary ms-2">@withoutEquipment.Count</span>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <!-- Desktop view -->
+                    <div class="table-responsive d-none d-lg-block">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr class="table-light">
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-3">Дата</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-3">Клиент</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-3">Контакты</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-3">Сообщение</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-3">Статус</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-3 text-center">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in withoutEquipment)
+                                {
+                                    <tr class="border-bottom">
+                                        <td class="py-2 px-3">
+                                            <div class="small text-muted">@r.CreatedAt.ToString("dd.MM.yy")</div>
+                                            <div class="small">@r.CreatedAt.ToString("HH:mm")</div>
+                                        </td>
+                                        <td class="py-2 px-3">
+                                            <div class="fw-medium">@r.Name</div>
+                                            @if (!string.IsNullOrWhiteSpace(r.Company))
+                                            {
+                                                <div class="small text-muted">@r.Company</div>
+                                            }
+                                        </td>
+                                        <td class="py-2 px-3">
+                                            <div class="small">
+                                                <a href="mailto:@r.Email" class="text-decoration-none">@r.Email</a>
+                                            </div>
+                                            <div class="small text-muted">@r.Phone</div>
+                                        </td>
+                                        <td class="py-2 px-3">
+                                            @if (!string.IsNullOrWhiteSpace(r.Message))
+                                            {
+                                                <div class="small">@r.Message.Substring(0, Math.Min(80, r.Message.Length))@(r.Message.Length > 80 ? "..." : "")</div>
+                                            }
+                                        </td>
+                                        <td class="py-2 px-3">
+                                            <select class="form-select form-select-sm select-status w-auto" data-id="@r.ContactRequestId">
+                                                <option value="New" selected="@(r.Status == "New")" class="text-primary fw-medium">🟢 Новый</option>
+                                                <option value="InProgress" selected="@(r.Status == "InProgress")" class="text-warning fw-medium">🟡 В работе</option>
+                                                <option value="Done" selected="@(r.Status == "Done")" class="text-success fw-medium">✅ Завершён</option>
+                                            </select>
+                                        </td>
+                                        <td class="py-2 px-3 text-center">
+                                            <div class="d-flex justify-content-center gap-1">
+                                                <button class="btn btn-sm btn-outline-primary btn-details" data-id="@r.ContactRequestId" title="Подробнее">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger btn-delete" data-id="@r.ContactRequestId" title="Удалить">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Tablet view -->
+                    <div class="table-responsive d-none d-md-block d-lg-none">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr class="table-light">
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-2">Дата</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-2">Клиент</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-2">Сообщение</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-2">Статус</th>
+                                    <th class="small fw-semibold text-uppercase text-muted py-2 px-2 text-center">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in withoutEquipment)
+                                {
+                                    <tr class="border-bottom">
+                                        <td class="py-2 px-2">
+                                            <div class="small">@r.CreatedAt.ToString("dd.MM.yy")</div>
+                                        </td>
+                                        <td class="py-2 px-2">
+                                            <div class="fw-medium">@r.Name</div>
+                                            <div class="small text-muted">@r.Phone</div>
+                                        </td>
+                                        <td class="py-2 px-2">
+                                            @if (!string.IsNullOrWhiteSpace(r.Message))
+                                            {
+                                                <div class="small">@r.Message.Substring(0, Math.Min(40, r.Message.Length))@(r.Message.Length > 40 ? "..." : "")</div>
+                                            }
+                                        </td>
+                                        <td class="py-2 px-2">
+                                            <select class="form-select form-select-sm select-status w-auto" data-id="@r.ContactRequestId">
+                                                <option value="New" selected="@(r.Status == "New")">Н</option>
+                                                <option value="InProgress" selected="@(r.Status == "InProgress")">ВР</option>
+                                                <option value="Done" selected="@(r.Status == "Done")">З</option>
+                                            </select>
+                                        </td>
+                                        <td class="py-2 px-2 text-center">
+                                            <div class="d-flex justify-content-center gap-1">
+                                                <button class="btn btn-sm btn-outline-primary btn-details" data-id="@r.ContactRequestId">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger btn-delete" data-id="@r.ContactRequestId">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Mobile view -->
+                    <div class="d-md-none">
+                        <div class="list-group list-group-flush">
+                            @foreach (var r in withoutEquipment)
+                            {
+                                <div class="list-group-item border-0 py-3 px-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <div class="fw-medium mb-1">@r.Name</div>
+                                            <div class="small text-muted d-flex align-items-center gap-2">
+                                                <span><i class="bi bi-clock"></i> @r.CreatedAt.ToString("dd.MM.yy HH:mm")</span>
+                                                @if (!string.IsNullOrWhiteSpace(r.Company))
+                                                {
+                                                    <span>•</span>
+                                                    <span>@r.Company</span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="d-flex gap-1">
+                                            <button class="btn btn-sm btn-outline-primary btn-details" data-id="@r.ContactRequestId">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger btn-delete" data-id="@r.ContactRequestId">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <div class="small text-muted">Контакты</div>
+                                            <div class="small">
+                                                <a href="mailto:@r.Email" class="text-decoration-none d-block">@r.Email</a>
+                                                <span class="d-block">@r.Phone</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="small text-muted">Статус</div>
+                                            <select class="form-select form-select-sm select-status mt-1" data-id="@r.ContactRequestId">
+                                                <option value="New" selected="@(r.Status == "New")">🟢 Новый</option>
+                                                <option value="InProgress" selected="@(r.Status == "InProgress")">🟡 В работе</option>
+                                                <option value="Done" selected="@(r.Status == "Done")">✅ Завершён</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    @if (!string.IsNullOrWhiteSpace(r.Message))
+                                    {
+                                        <div>
+                                            <div class="small text-muted">Сообщение</div>
+                                            <div class="small mt-1">@r.Message.Substring(0, Math.Min(60, r.Message.Length))@(r.Message.Length > 60 ? "..." : "")</div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<style>
+    /* Минимальные стили для улучшения */
+    .table th { border-top: none; }
+    .table tbody tr:last-child { border-bottom: none; }
+    .list-group-item { border-color: #f0f0f0 !important; }
+    .select-status:focus { box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1); }
+    
+   
+</style>

@@ -1,0 +1,407 @@
+@model FoodTech.ViewModels.ManufacturerUserEditCreateVm
+@{
+    ViewData["Title"] = "Редактирование производителя";
+}
+
+<div class="container-fluid mt-3">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-building-gear me-3 fs-4"></i>
+                            <div>
+                                <h4 class="mb-0">@ViewData["Title"]</h4>
+                                <small class="opacity-75">Изменение данных вашего предприятия</small>
+                            </div>
+                        </div>
+                        <div class="badge bg-light text-primary fs-6 px-3 py-2">
+                            ID: @Model.ManufacturerId
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <form id="manufacturerForm" asp-action="Edit" method="post" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="ManufacturerId" />
+
+                        <div class="row g-3">
+                            <!-- Левая колонка -->
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label fw-bold">
+                                        <i class="bi bi-tag me-1"></i>Название компании *
+                                    </label>
+                                    <input asp-for="Name" class="form-control form-control-sm" required 
+                                           placeholder="Введите название компании" />
+                                    <span asp-validation-for="Name" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Country" class="form-label fw-bold">
+                                        <i class="bi bi-globe me-1"></i>Страна
+                                    </label>
+                                    <input asp-for="Country" class="form-control form-control-sm" 
+                                           placeholder="Россия" />
+                                    <span asp-validation-for="Country" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="ContactPerson" class="form-label fw-bold">
+                                        <i class="bi bi-person me-1"></i>Контактное лицо
+                                    </label>
+                                    <input asp-for="ContactPerson" class="form-control form-control-sm" 
+                                           placeholder="ФИО ответственного" />
+                                    <span asp-validation-for="ContactPerson" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <!-- Центральная колонка -->
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="Address" class="form-label fw-bold">
+                                        <i class="bi bi-geo-alt me-1"></i>Адрес
+                                    </label>
+                                    <input asp-for="Address" class="form-control form-control-sm" 
+                                           placeholder="Юридический адрес" />
+                                    <span asp-validation-for="Address" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Website" class="form-label fw-bold">
+                                        <i class="bi bi-link me-1"></i>Сайт
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">https://</span>
+                                        <input asp-for="Website" class="form-control" 
+                                               placeholder="example.com" />
+                                    </div>
+                                    <span asp-validation-for="Website" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="ContactPhone" class="form-label fw-bold">
+                                        <i class="bi bi-telephone me-1"></i>Телефон
+                                    </label>
+                                    <input asp-for="ContactPhone" class="form-control form-control-sm" 
+                                           placeholder="+7 (XXX) XXX-XX-XX" />
+                                    <span asp-validation-for="ContactPhone" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <!-- Правая колонка -->
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="ContactEmail" class="form-label fw-bold">
+                                        <i class="bi bi-envelope me-1"></i>Email
+                                    </label>
+                                    <input asp-for="ContactEmail" type="email" class="form-control form-control-sm" 
+                                           placeholder="email@example.com" />
+                                    <span asp-validation-for="ContactEmail" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Notes" class="form-label fw-bold">
+                                        <i class="bi bi-info-circle me-1"></i>Дополнительная информация
+                                    </label>
+                                    <textarea asp-for="Notes" class="form-control form-control-sm" rows="3" 
+                                              placeholder="Специализация, сфера деятельности..."></textarea>
+                                    <span asp-validation-for="Notes" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mt-4 pt-2 border-top">
+                                    <div class="d-flex justify-content-between">
+                                        <button type="submit" class="btn btn-primary btn-sm px-4">
+                                            <i class="bi bi-save me-1"></i>Сохранить изменения
+                                        </button>
+                                        <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Назад
+</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Информационный блок -->
+                <div class="card-footer bg-light py-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="small text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <strong>Важно:</strong> После сохранения изменения будут применены ко всем вашим товарам
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="small text-muted">
+                                <i class="bi bi-clock-history me-1"></i>
+                                Последнее обновление: @DateTime.Now.ToString("dd.MM.yyyy")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+<style>
+    /* Стили для компактной формы редактирования */
+    body {
+        background-color: #f8f9fa;
+    }
+    
+    .card {
+        max-width: 1200px;
+        margin: 0 auto;
+        border-radius: 10px;
+        border: 1px solid rgba(0,0,0,0.125);
+    }
+    
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    }
+    
+    .form-control-sm {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+        height: calc(1.5em + 0.75rem + 2px);
+    }
+    
+    .form-label {
+        font-size: 0.875rem;
+        margin-bottom: 0.3rem;
+        color: #495057;
+    }
+    
+    .btn-sm {
+        padding: 0.375rem 1rem;
+        font-size: 0.875rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        border-color: #0b5ed7;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+        transition: all 0.2s ease;
+    }
+    
+    .badge {
+        font-weight: 600;
+        border-radius: 20px;
+    }
+    
+    /* Адаптивность */
+    @@media (max-width: 768px) {
+        .col-md-4 {
+            width: 100%;
+        }
+        .card-header .d-flex {
+            flex-direction: column;
+            align-items: flex-start !important;
+        }
+        .card-header .badge {
+            margin-top: 10px;
+        }
+    }
+    
+    /* Подсветка измененных полей */
+    .form-control:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        background-color: #fff;
+    }
+    
+    .form-control.changed {
+        border-color: #198754;
+        background-color: #f8fff9;
+    }
+    
+    /* Уменьшаем отступы между строками в 3-колоночной сетке */
+    .row.g-3 > [class*='col-'] {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem !important;
+    }
+    
+    /* Высота формы будет фиксирована для предотвращения скролла */
+    .container-fluid {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    /* Стили для алертов */
+    .alert {
+        border-radius: 8px;
+        border: none;
+        max-width: 1200px;
+        margin: 0 auto 20px auto;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Информационный блок в футере */
+    .card-footer {
+        border-top: 1px solid rgba(0,0,0,0.05);
+    }
+</style>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('manufacturerForm');
+            const originalValues = {};
+            
+            // Сохраняем оригинальные значения для отслеживания изменений
+            form.querySelectorAll('input, textarea').forEach(input => {
+                if (input.name && input.type !== 'hidden') {
+                    originalValues[input.name] = input.value;
+                    
+                    // Отслеживаем изменения
+                    input.addEventListener('input', function() {
+                        if (this.value !== originalValues[this.name]) {
+                            this.classList.add('changed');
+                        } else {
+                            this.classList.remove('changed');
+                        }
+                    });
+                    
+                    // При загрузке проверяем, есть ли изменения
+                    if (this.value !== originalValues[this.name]) {
+                        this.classList.add('changed');
+                    }
+                }
+            });
+            
+            // Автоматический формат для телефона
+            const phoneInput = document.querySelector('input[name="ContactPhone"]');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.startsWith('7')) {
+                        value = '+7' + value.substring(1);
+                    } else if (value.startsWith('8')) {
+                        value = '+7' + value.substring(1);
+                    }
+                    
+                    if (value.length > 2) {
+                        value = value.substring(0, 2) + ' ' + value.substring(2);
+                    }
+                    if (value.length > 6) {
+                        value = value.substring(0, 6) + ' ' + value.substring(6);
+                    }
+                    if (value.length > 10) {
+                        value = value.substring(0, 10) + ' ' + value.substring(10);
+                    }
+                    if (value.length > 13) {
+                        value = value.substring(0, 13);
+                    }
+                    
+                    e.target.value = value;
+                });
+            }
+            
+            // Автодополнение для сайта
+            const websiteInput = document.querySelector('input[name="Website"]');
+            if (websiteInput) {
+                websiteInput.addEventListener('blur', function() {
+                    let value = this.value.trim();
+                    if (value && !value.startsWith('http://') && !value.startsWith('https://') && value.includes('.')) {
+                        this.value = 'https://' + value;
+                        if (this.value !== originalValues[this.name]) {
+                            this.classList.add('changed');
+                        }
+                    }
+                });
+            }
+            
+            // Подтверждение при закрытии с несохраненными изменениями
+            let hasChanges = false;
+            
+            form.addEventListener('input', function() {
+                hasChanges = true;
+            });
+            
+            window.addEventListener('beforeunload', function(e) {
+                if (hasChanges) {
+                    e.preventDefault();
+                    e.returnValue = 'У вас есть несохраненные изменения. Вы уверены, что хотите уйти?';
+                    return e.returnValue;
+                }
+            });
+            
+            // Сброс флага при отправке формы
+            form.addEventListener('submit', function() {
+                hasChanges = false;
+                
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    // Прокрутка к первому невалидному полю
+                    const firstInvalid = form.querySelector(':invalid');
+                    if (firstInvalid) {
+                        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstInvalid.focus();
+                    }
+                }
+                
+                form.classList.add('was-validated');
+            });
+            
+            // Фокус на первое поле при загрузке
+            setTimeout(() => {
+                const firstInput = form.querySelector('input[required]');
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }, 100);
+            
+            // Автоматическое закрытие алертов через 5 секунд
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    setTimeout(() => bsAlert.close(), 5000);
+                });
+            }, 5000);
+        });
+    </script>
+}

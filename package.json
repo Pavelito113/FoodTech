@@ -1,0 +1,14 @@
+{
+  "name": "foodtech",
+  "version": "1.0.0",
+  "description": "FoodTech equipment catalog",
+  "scripts": {
+    "copy-libs": "node copy-libs.js",
+    "setup": "npm install && npm run copy-libs",
+    "build": "npm run copy-libs"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.2",
+    "bootstrap-icons": "^1.11.0"
+  }
+}

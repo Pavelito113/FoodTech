@@ -1,0 +1,57 @@
+@{
+    dynamic deleteInfo = ViewData.Model;
+    bool hasUsers = deleteInfo?.HasUsers == true;
+    bool hasEquipments = deleteInfo?.HasEquipments == true;
+    string name = deleteInfo?.Name ?? "";
+    int id = deleteInfo?.ManufacturerId ?? 0;
+    int userCount = deleteInfo?.UserCount ?? 0;
+    int equipmentCount = deleteInfo?.EquipmentCount ?? 0;
+}
+
+<div class="modal-header">
+    <h5 class="modal-title">Подтверждение удаления</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+    @if (hasUsers || hasEquipments)
+    {
+        <div class="alert alert-warning">
+            <h5><i class="bi bi-exclamation-triangle me-2"></i>Удаление невозможно</h5>
+            <p>Нельзя удалить производителя <strong>@name</strong>, так как с ним связаны:</p>
+            @if (hasUsers)
+            {
+                <p>• Пользователи: <strong>@userCount</strong></p>
+            }
+            @if (hasEquipments)
+            {
+                <p>• Оборудование: <strong>@equipmentCount</strong></p>
+            }
+            <p class="mt-2 mb-0">Сначала необходимо отвязать все связанные данные.</p>
+        </div>
+    }
+    else
+    {
+        <p>Вы уверены, что хотите удалить производителя <strong>@name</strong>?</p>
+        <p class="text-muted">Это действие нельзя отменить.</p>
+    }
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+    
+    @if (!hasUsers && !hasEquipments)
+    {
+        <form id="deleteForm"
+              method="post"
+              data-action="/admin/manufacturers/delete"> <!-- Добавлен data-action -->
+            
+            <input type="hidden" name="id" value="@id" />
+            @Html.AntiForgeryToken()
+            
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Удалить
+            </button>
+        </form>
+    }
+</div>

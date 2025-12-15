@@ -1,0 +1,136 @@
+@model FoodTech.ViewModels.ContactRequestVm
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<div class="modal fade" id="requestDetailsModal" tabindex="-1" aria-labelledby="requestDetailsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title d-flex align-items-center gap-2" id="requestDetailsLabel">
+                    <i class="bi bi-envelope-paper"></i> Детали запроса
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Контактная информация -->
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <h6 class="fw-semibold mb-3"><i class="bi bi-person"></i> Контактное лицо</h6>
+                            <p class="mb-1"><strong>Имя:</strong> @Model.Name</p>
+                            <p class="mb-1"><strong>Email:</strong> <a href="mailto:@Model.Email">@Model.Email</a></p>
+                            <p class="mb-1"><strong>Телефон:</strong> <a href="tel:@Model.Phone">@Model.Phone</a></p>
+                            <p class="mb-0"><strong>Компания:</strong> @(string.IsNullOrWhiteSpace(Model.Company) ? "—" : Model.Company)</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <h6 class="fw-semibold mb-3"><i class="bi bi-gear"></i> Оборудование</h6>
+                            @if (!string.IsNullOrWhiteSpace(Model.EquipmentName))
+                            {
+                                <p class="mb-1"><strong>Название:</strong> @Model.EquipmentName</p>
+                                <p class="mb-1"><strong>ID оборудования:</strong> @(Model.EquipmentId?.ToString() ?? "—")</p>
+                            }
+                            else
+                            {
+                                <p class="text-muted">Без указания оборудования</p>
+                            }
+
+                            <p class="mb-0"><strong>Статус:</strong>
+                                <span class="badge bg-@(Model.Status switch {
+                                    "New" => "primary",
+                                    "InProgress" => "info",
+                                    "Done" => "success",
+                                    "Closed" => "secondary",
+                                    _ => "light text-dark"
+                                })">@Model.Status</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Сообщение клиента -->
+                <div class="border rounded p-3 mt-4 bg-light">
+                    <h6 class="fw-semibold mb-2"><i class="bi bi-chat-text"></i> Сообщение клиента</h6>
+                    <p class="mb-0" style="white-space: pre-wrap;">@Model.Message</p>
+                </div>
+
+                <!-- Метаинформация -->
+                <div class="mt-4 small text-muted d-flex justify-content-between">
+                    <div><i class="bi bi-clock"></i> Создано: @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</div>
+                    @if (!string.IsNullOrWhiteSpace(Model.SourceUrl))
+                    {
+                        <div><i class="bi bi-link-45deg"></i> Источник: <a href="@Model.SourceUrl" target="_blank">@Model.SourceUrl</a></div>
+                    }
+                </div>
+
+                <hr />
+
+                <!-- Пересылка производителю -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label fw-semibold mb-0">Переслать производителю</label>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="toggleManufacturersBtn">
+                            <i class="bi bi-chevron-down"></i> Показать список
+                        </button>
+                    </div>
+                    
+                    <div id="manufacturersContainer" class="border rounded p-3 bg-light mb-2" style="display: none; max-height: 150px; overflow-y: auto;">
+                        <div class="text-center py-2">
+                            <div class="spinner-border spinner-border-sm text-primary"></div>
+                            <span class="ms-2">Загрузка производителей...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <small class="text-muted">Выбрано: <span id="selectedCount" class="badge bg-primary">0</span></small>
+                        <div id="selectedPreview" class="mt-1 small text-muted" style="min-height: 20px;">
+                            <!-- Здесь будет отображаться выбранные компании -->
+                        </div>
+                    </div>
+                    
+                    <textarea id="forwardNote" class="form-control mb-2" rows="2" placeholder="Комментарий/инструкция для производителя (необязательно)"></textarea>
+                    <button id="forwardManufacturerBtn" data-id="@Model.ContactRequestId" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-send"></i> Переслать выбранным производителям
+                    </button>
+                </div>
+
+                <hr />
+
+                <!-- Ответ клиенту -->
+                <div class="mb-0">
+                    <h6 class="fw-semibold">Ответ клиенту</h6>
+                    <form id="replyToClientForm">
+                        <input type="hidden" name="ContactRequestId" value="@Model.ContactRequestId" />
+                        <div class="mb-2">
+                            <label class="form-label">Тема</label>
+                            <input name="Subject" class="form-control" placeholder="Тема письма" required />
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Сообщение</label>
+                            <textarea name="Body" class="form-control" rows="5" placeholder="Текст ответа клиенту" required></textarea>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-reply"></i> Отправить клиенту
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Закрыть
+                </button>
+                @if (Model.Status != "Done" && Model.Status != "Closed")
+                {
+                    <button type="button" class="btn btn-outline-primary" id="markProcessedBtn" data-id="@Model.ContactRequestId">
+                        <i class="bi bi-check2-circle"></i> Пометить как обработанное
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>

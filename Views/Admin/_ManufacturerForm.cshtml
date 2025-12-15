@@ -1,0 +1,53 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model FoodTech.ViewModels.ManufacturerVm
+
+<form method="post" asp-action="Save" asp-controller="Manufacturers" asp-antiforgery="true" novalidate>
+    <input type="hidden" name="ManufacturerId" value="@Model.ManufacturerId" />
+
+    <div class="row p-3 g-3">
+        <div class="col-md-4">
+            <label class="form-label">Название *</label>
+            <input name="Name" class="form-control" value="@Model.Name" required />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Страна</label>
+            <input name="Country" class="form-control" value="@Model.Country" />
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Сайт</label>
+            <input name="Website" class="form-control" value="@Model.Website" />
+            <span asp-validation-for="Website" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Контактное лицо</label>
+            <input name="ContactPerson" class="form-control" value="@Model.ContactPerson" />
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Телефон</label>
+            <input name="ContactPhone" class="form-control" value="@Model.ContactPhone" />
+            <span asp-validation-for="ContactPhone" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Email</label>
+            <input name="ContactEmail" class="form-control" value="@Model.ContactEmail" />
+            <span asp-validation-for="ContactEmail" class="text-danger"></span>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label">Заметки</label>
+            <textarea name="Notes" class="form-control" rows="3">@Model.Notes</textarea>
+        </div>
+
+        <div class="col-12 d-flex justify-content-end mt-2">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-lg"></i> Сохранить
+            </button>
+        </div>
+    </div>
+</form>

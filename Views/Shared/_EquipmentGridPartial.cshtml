@@ -1,0 +1,106 @@
+@model IEnumerable<FoodTech.ViewModels.EquipmentListItemVm>
+
+<!-- ===== ВИД КАРТОЧКАМИ ===== -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="card-view-container">
+@foreach (var item in Model)
+{
+    var detailsUrl = Url.Action("Details", "Equipment", new { id = item.EquipmentId });
+    var imageUrl = string.IsNullOrEmpty(item.ImageUrl)
+        ? "/images/no-image.png"
+        : item.ImageUrl;
+    var description = string.IsNullOrEmpty(item.ShortDescription)
+        ? ""
+        : (item.ShortDescription.Length > 80 ? item.ShortDescription[..80] + "..." : item.ShortDescription);
+
+    <div class="col">
+        <div class="card h-100 shadow-sm d-flex flex-column equipment-card border-0 rounded-4 overflow-hidden">
+            <a href="@detailsUrl" class="equipment-image-link">
+                <img src="@imageUrl" class="card-img-top equipment-image" alt="@item.Name" />
+                <div class="image-overlay">
+                    <span class="view-details-text">Просмотреть детали</span>
+                </div>
+            </a>
+
+            <div class="card-body flex-grow-1 d-flex flex-column p-3">
+                <h5 class="card-title mb-1 text-truncate">
+                    <a href="@detailsUrl" class="text-decoration-none equipment-title-link">@item.Name</a>
+                </h5>
+                @if (!string.IsNullOrEmpty(item.Model))
+                {
+                    <h6 class="card-subtitle mb-2 text-muted small">@item.Model</h6>
+                }
+                <p class="card-text text-muted small flex-grow-1 mb-2">@description</p>
+            </div>
+
+            <div class="card-footer bg-white border-0 border-top pt-2 pb-3 px-3 mt-auto">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="small text-muted flex-grow-1 text-truncate">
+                        @item.IndustryName • @item.CategoryName • @item.ManufacturerName
+                    </div>
+                    <button type="button"
+                            class="btn btn-primary btn-sm rounded-pill px-3 request-btn"
+                            data-bs-toggle="modal"
+                            data-bs-target="#contactModal"
+                            data-equipment-id="@item.EquipmentId"
+                            data-equipment-name="@item.Name">
+                        Запросить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+</div>
+
+<!-- ===== ВИД СПИСКОМ ===== -->
+<div class="d-none" id="list-view-container">
+@foreach (var item in Model)
+{
+    var detailsUrl = Url.Action("Details", "Equipment", new { id = item.EquipmentId });
+    var imageUrl = string.IsNullOrEmpty(item.ImageUrl)
+        ? "/images/no-image.png"
+        : item.ImageUrl;
+
+    <div class="card mb-3 shadow-sm equipment-list-item border-0 rounded-4 overflow-hidden">
+        <div class="row g-0 align-items-center">
+            <div class="col-md-2">
+                <a href="@detailsUrl" class="equipment-image-link">
+                    <img src="@imageUrl"
+                         class="img-fluid equipment-image rounded-start"
+                         alt="@item.Name"
+                         style="height: 120px; object-fit: cover; width: 100%;">
+                    <div class="image-overlay">
+                        <span class="view-details-text">Просмотреть</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card-body py-3 px-3">
+                    <h5 class="card-title mb-1 text-truncate">
+                        <a href="@detailsUrl" class="text-decoration-none equipment-title-link">@item.Name</a>
+                    </h5>
+                    @if (!string.IsNullOrEmpty(item.Model))
+                    {
+                        <h6 class="card-subtitle mb-2 text-muted small">@item.Model</h6>
+                    }
+                    <p class="card-text text-muted small mb-2 text-truncate">@item.ShortDescription</p>
+                    <div class="small text-muted">@item.IndustryName • @item.CategoryName • @item.ManufacturerName</div>
+                </div>
+            </div>
+
+            <div class="col-md-2 d-flex align-items-center justify-content-center">
+                <button type="button"
+                        class="btn btn-primary btn-sm rounded-pill px-3 request-btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#contactModal"
+                        data-equipment-id="@item.EquipmentId"
+                        data-equipment-name="@item.Name">
+                    Запросить
+                </button>
+            </div>
+        </div>
+    </div>
+}
+</div>
+

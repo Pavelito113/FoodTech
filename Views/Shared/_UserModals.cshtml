@@ -1,0 +1,145 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+
+<!-- ===================================================== -->
+<!-- МОДАЛКА РЕДАКТИРОВАНИЯ ПОЛЬЗОВАТЕЛЯ (вне контейнера) -->
+<!-- ===================================================== -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="editUserForm" class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Редактирование</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" name="Id">
+
+                <div class="mb-3">
+                    <label class="form-label">Имя</label>
+                    <input name="Name" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input name="Email" type="email" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Компания</label>
+                    <input name="Company" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Телефон</label>
+                    <input name="Phone" class="form-control">
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="submit" class="btn btn-primary" id="editUserSubmitBtn">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- ============================ -->
+<!-- МОДАЛКА — ДОБАВЛЕНИЕ         -->
+<!-- ============================ -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form id="addUserForm" class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Добавить пользователя</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Имя</label>
+                    <input name="Name" class="form-control" required/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input name="Email" type="email" class="form-control" required/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Компания</label>
+                    <input name="Company" class="form-control"/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Телефон</label>
+                    <input name="Phone" class="form-control"/>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Роль</label>
+                    <select name="Role" class="form-select">
+                        <option value="User" selected>User</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="submit" class="btn btn-primary" id="addUserSubmitBtn">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================ -->
+<!-- МОДАЛКА — ВРЕМЕННЫЙ ПАРОЛЬ   -->
+<!-- ============================ -->
+<div class="modal fade" id="tempPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="bi bi-key me-2"></i>Временный пароль</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Сохраните эти данные!</strong> Пароль будет показан только один раз.
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Логин (Email):</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" readonly id="tempPasswordEmail">
+                        <button class="btn btn-outline-secondary" type="button" id="copyEmailBtn">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Временный пароль:</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" readonly id="tempPasswordValue">
+                        <button class="btn btn-outline-secondary" type="button" id="copyPasswordBtn">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Важно:</strong> Пользователь должен сменить пароль при первом входе!
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Понятно</button>
+            </div>
+        </div>
+    </div>
+</div>
+

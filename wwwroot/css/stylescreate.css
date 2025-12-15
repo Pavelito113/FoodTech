@@ -1,0 +1,141 @@
+/* =======================================================
+   Equipment form — aligned & readable
+   ======================================================= */
+
+
+.page-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+               .equipment-page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+                   
+            .equipment-page .card {
+                width: 100% !important;
+                min-height: auto !important;
+                margin-bottom: 20px;
+            }
+            
+            .equipment-page .flex-md-row {
+                flex-direction: column !important;
+            }
+        
+
+/* ---------- Sections ---------- */
+
+.form-section {
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    border-bottom: 1px dashed #e0e0e0;
+}
+
+/* ---------- Blocks ---------- */
+
+.form-block {
+    margin-bottom: 10px;
+}
+
+/* ---------- Labels ---------- */
+
+.form-label {
+    font-size: 0.82rem;
+    color: #495057;
+    margin-bottom: 3px;
+}
+
+.form-label.required::after {
+    content: " *";
+    color: #dc3545;
+}
+
+/* ---------- Inputs ---------- */
+
+#equipmentForm .form-control,
+#equipmentForm .form-select {
+    font-size: 0.82rem;
+    padding: 6px 8px;
+    border-radius: 6px;
+}
+
+/* ---------- Errors ---------- */
+
+.field-error {
+    font-size: 0.68rem;
+    color: #dc3545;
+}
+
+/* ---------- Manufacturer ---------- */
+
+.manufacturer-box {
+    background: #f8f9fa;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+.manufacturer-view {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.manufacturer-link {
+    font-weight: 500;
+    color: #0d6efd;
+    text-decoration: none;
+}
+
+.manufacturer-link:hover {
+    text-decoration: underline;
+}
+
+/* ---------- Textareas ---------- */
+
+textarea {
+    resize: vertical;
+}
+
+/* ---------- Screen height optimization ---------- */
+
+@media (min-height: 900px) {
+    textarea[rows="6"] {
+        min-height: 180px;
+    }
+}
+
+@media (max-height: 700px) {
+    .form-section {
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+}
+
+     @media (min-height: 700px) {
+            textarea[rows="6"] {
+                min-height: 150px;
+            }
+        }
+
+        @media (min-height: 900px) {
+            textarea[rows="6"] {
+                min-height: 200px;
+            }
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #0d6efd;
+            color: white;
+        }
+        
+ @media (max-width: 767.98px) {
+            .equipment-page.mobile-scroll {
+                height: auto;
+                min-height: 100vh;
+                overflow-y: auto;
+            }
+        }

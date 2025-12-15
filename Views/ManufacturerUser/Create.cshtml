@@ -1,0 +1,278 @@
+@model FoodTech.ViewModels.ManufacturerVm
+
+@{
+    ViewData["Title"] = "Создание производителя";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Создание производителя</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Сообщения об успехе/ошибке -->
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Create" method="post" id="createForm">
+                        @Html.AntiForgeryToken()
+                        
+                        <!-- Название компании -->
+                        <div class="mb-3">
+                            <label for="Name" class="form-label fw-bold">Название компании <span class="text-danger">*</span></label>
+                            <input type="text" 
+                                   id="Name" 
+                                   name="Name" 
+                                   class="form-control" 
+                                   placeholder="Введите название компании" 
+                                   maxlength="100"
+                                   value="@Model.Name" />
+                            <div class="text-danger small mt-1" id="nameError" style="display: none;"></div>
+                            <div class="form-text">Максимум 100 символов</div>
+                        </div>
+
+                        <!-- Страна -->
+                        <div class="mb-3">
+                            <label for="Country" class="form-label fw-bold">Страна</label>
+                            <input type="text" 
+                                   id="Country" 
+                                   name="Country" 
+                                   class="form-control" 
+                                   placeholder="Введите страну" 
+                                   maxlength="50"
+                                   value="@Model.Country" />
+                            <div class="text-danger small mt-1" id="countryError" style="display: none;"></div>
+                            <div class="form-text">Максимум 50 символов</div>
+                        </div>
+
+                        <!-- Веб-сайт -->
+                        <div class="mb-3">
+                            <label for="Website" class="form-label fw-bold">Веб-сайт</label>
+                            <input type="text" 
+                                   id="Website" 
+                                   name="Website" 
+                                   class="form-control" 
+                                   placeholder="example.com или https://example.com" 
+                                   maxlength="200"
+                                   value="@Model.Website" />
+                            <div class="text-danger small mt-1" id="websiteError" style="display: none;"></div>
+                            <div class="form-text">Максимум 200 символов. Можно ввести без https://</div>
+                        </div>
+
+                        <!-- Описание -->
+                        <div class="mb-4">
+                            <label for="Notes" class="form-label fw-bold">Описание / Примечания</label>
+                            <textarea id="Notes" 
+                                      name="Notes" 
+                                      class="form-control" 
+                                      rows="4" 
+                                      placeholder="Введите описание компании" 
+                                      maxlength="500">@Model.Notes</textarea>
+                            <div class="text-danger small mt-1" id="notesError" style="display: none;"></div>
+                            <div class="form-text">
+                                <span id="notesCounter">0</span>/500 символов
+                            </div>
+                        </div>
+
+                        <!-- Кнопки -->
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-success px-4" id="submitBtn">
+                                <i class="fas fa-plus-circle me-2"></i>Создать производителя
+                            </button>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Отмена
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>Поля, отмеченные <span class="text-danger">*</span>, обязательны для заполнения
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('createForm');
+        const nameInput = document.getElementById('Name');
+        const countryInput = document.getElementById('Country');
+        const websiteInput = document.getElementById('Website');
+        const notesInput = document.getElementById('Notes');
+        const notesCounter = document.getElementById('notesCounter');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        // Счетчик символов для Notes
+        function updateCounter() {
+            const length = notesInput.value.length;
+            notesCounter.textContent = length;
+            if (length > 500) {
+                notesCounter.classList.add('text-danger', 'fw-bold');
+                showError('notesError', 'Максимальная длина 500 символов');
+            } else {
+                notesCounter.classList.remove('text-danger', 'fw-bold');
+                hideError('notesError');
+            }
+        }
+        
+        notesInput.addEventListener('input', updateCounter);
+        updateCounter(); // Инициализация
+        
+        // Автодополнение https:// для URL
+        websiteInput.addEventListener('blur', function() {
+            let url = this.value.trim();
+            if (url && 
+                !url.startsWith('http://') && 
+                !url.startsWith('https://') && 
+                !url.startsWith('//')) {
+                if (url.includes('.') && url.length > 3) {
+                    this.value = 'https://' + url;
+                }
+            }
+        });
+        
+        // Вспомогательные функции для отображения ошибок
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+        
+        function hideError(elementId) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.style.display = 'none';
+        }
+        
+        function clearAllErrors() {
+            hideError('nameError');
+            hideError('countryError');
+            hideError('websiteError');
+            hideError('notesError');
+            nameInput.classList.remove('is-invalid');
+            countryInput.classList.remove('is-invalid');
+            websiteInput.classList.remove('is-invalid');
+            notesInput.classList.remove('is-invalid');
+        }
+        
+        // Функция валидации URL
+        function isValidUrl(url) {
+            if (!url || url.trim() === '') return true;
+            
+            url = url.trim();
+            try {
+                // Добавляем протокол если его нет
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+                new URL(url);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+        
+        // Валидация при отправке формы
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            clearAllErrors();
+            
+            let isValid = true;
+            const submitBtnText = submitBtn.innerHTML;
+            
+            // Проверка названия (обязательное)
+            const nameValue = nameInput.value.trim();
+            if (!nameValue) {
+                showError('nameError', 'Введите название компании');
+                nameInput.classList.add('is-invalid');
+                isValid = false;
+            } else if (nameValue.length > 100) {
+                showError('nameError', 'Максимальная длина 100 символов');
+                nameInput.classList.add('is-invalid');
+                isValid = false;
+            }
+            
+            // Проверка страны (необязательное)
+            if (countryInput.value.length > 50) {
+                showError('countryError', 'Максимальная длина 50 символов');
+                countryInput.classList.add('is-invalid');
+                isValid = false;
+            }
+            
+            // Проверка сайта (необязательное)
+            const websiteValue = websiteInput.value.trim();
+            if (websiteValue) {
+                if (!isValidUrl(websiteValue)) {
+                    showError('websiteError', 'Некорректный формат URL');
+                    websiteInput.classList.add('is-invalid');
+                    isValid = false;
+                } else if (websiteValue.length > 200) {
+                    showError('websiteError', 'Максимальная длина 200 символов');
+                    websiteInput.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+            
+            // Проверка описания (необязательное)
+            if (notesInput.value.length > 500) {
+                showError('notesError', 'Максимальная длина 500 символов');
+                notesInput.classList.add('is-invalid');
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                // Прокрутка к первой ошибке
+                const firstInvalid = form.querySelector('.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalid.focus();
+                }
+                return false;
+            }
+            
+            // Блокируем кнопку и показываем спиннер
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Создание...';
+            
+            // Форматируем URL перед отправкой
+            if (websiteValue && isValidUrl(websiteValue)) {
+                let formattedUrl = websiteValue;
+                if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+                    formattedUrl = 'https://' + formattedUrl;
+                }
+                websiteInput.value = formattedUrl;
+            }
+            
+            // Отправляем форму через 100мс (для UX)
+            setTimeout(() => {
+                form.submit();
+            }, 100);
+            
+            return false;
+        });
+        
+        // Снятие ошибки при вводе
+        [nameInput, countryInput, websiteInput, notesInput].forEach(input => {
+            input.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+                const errorId = this.id + 'Error';
+                hideError(errorId);
+            });
+        });
+    });
+</script>

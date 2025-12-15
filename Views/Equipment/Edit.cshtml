@@ -1,0 +1,547 @@
+@model FoodTech.ViewModels.EquipmentEditVm
+
+@{
+    var isEdit = Model.EquipmentId.HasValue;
+    ViewData["Title"] = isEdit ? "Редактировать оборудование" : "Добавить оборудование";
+}
+
+<div class="container mt-3 equipment-page">
+    <h5 class="page-title">@ViewData["Title"]</h5>
+
+    <form id="equipmentForm"
+          asp-controller="Equipment"
+          asp-action="@(isEdit ? "Edit" : "Create")"
+          method="post"
+          enctype="multipart/form-data">
+
+        @Html.AntiForgeryToken()
+        @if (isEdit) { <input type="hidden" asp-for="EquipmentId" /> }
+
+        <!-- ================= BASIC INFO ================= -->
+        <div class="form-section">
+            <div class="row g-3 align-items-start">
+
+                <!-- LEFT -->
+                <div class="col-lg-6">
+                    <div class="form-block">
+                        <label asp-for="Name" class="form-label required">Название</label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="field-error"></span>
+                    </div>
+
+                    <div class="form-block">
+                        <label asp-for="Model" class="form-label">Модель</label>
+                        <input asp-for="Model" class="form-control" />
+                        <span asp-validation-for="Model" class="field-error"></span>
+                    </div>
+                </div>
+
+                <!-- RIGHT -->
+                <div class="col-lg-6">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label asp-for="IndustryId" class="form-label required">Отрасль</label>
+                            <select asp-for="IndustryId" class="form-select">
+                                <option value="">Выберите…</option>
+                                @foreach (var i in Model.Industries)
+                                {
+                                    <option value="@i.Id">@i.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="IndustryId" class="field-error"></span>
+                        </div>
+
+                        <div class="col-6">
+                            <label asp-for="EquipmentCategoryId" class="form-label required">Категория</label>
+                            <select asp-for="EquipmentCategoryId" class="form-select">
+                                <option value="">Выберите…</option>
+                                @foreach (var c in Model.Categories)
+                                {
+                                    <option value="@c.Id">@c.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="EquipmentCategoryId" class="field-error"></span>
+                        </div>
+                    </div>
+
+                    <div id="manufacturer-block" class="manufacturer-box mt-3">
+                        <label class="form-label">Производитель</label>
+
+                        @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                        {
+                            <select asp-for="ManufacturerId" class="form-select">
+                                <option value="">Не указан</option>
+                                @foreach (var m in Model.Manufacturers)
+                                {
+                                    <option value="@m.Id">@m.Name</option>
+                                }
+                            </select>
+                        }
+                        else if (User.Identity?.IsAuthenticated == true)
+                        {
+                            @if (Model.ManufacturerId > 0)
+                            {
+                                var manufacturerName =
+                                    Model.Manufacturers.FirstOrDefault(m => m.Id == Model.ManufacturerId)?.Name;
+
+                                <div class="manufacturer-view">
+                                    <a asp-controller="ManufacturerUser"
+                                       asp-action="Edit"
+                                       class="manufacturer-link">
+                                        @manufacturerName
+                                    </a>
+                                    <small>нажмите для редактирования</small>
+                                </div>
+
+                                <input type="hidden" asp-for="ManufacturerId" />
+                            }
+                            else
+                            {
+                                <div class="manufacturer-empty">
+                                    <a asp-controller="ManufacturerUser" asp-action="Create">
+                                        Создать производителя
+                                    </a>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= DESCRIPTIONS ================= -->
+        <div class="form-section">
+            <div class="row g-3">
+                <div class="col-lg-6">
+                    <label asp-for="ShortDescription" class="form-label">Краткое описание</label>
+                    <textarea asp-for="ShortDescription"
+                              rows="3"
+                              class="form-control"></textarea>
+                    <span asp-validation-for="ShortDescription" class="field-error"></span>
+                </div>
+
+                <div class="col-lg-6">
+                    <label asp-for="Description" class="form-label">Полное описание</label>
+                    <textarea asp-for="Description"
+                              rows="6"
+                              class="form-control"></textarea>
+                    <span asp-validation-for="Description" class="field-error"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Характеристики -->
+        <div class="mt-4 border-top pt-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="fw-semibold">Характеристики</label>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addSpec()">
+                    <i class="bi bi-plus-circle me-1"></i>Добавить характеристику
+                </button>
+            </div>
+            
+            <div id="specs-container" class="mb-2">
+                @for (int i = 0; i < Model.Specs.Count; i++)
+                {
+                    <div class="spec-row mb-2">
+                        <input type="hidden" asp-for="Specs[i].EquipmentSpecId" />
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-4">
+                                <input asp-for="Specs[i].SpecKey" class="form-control form-control-sm" 
+                                       placeholder="Параметр (например, Мощность)" />
+                            </div>
+                            <div class="col-md-3">
+                                <input asp-for="Specs[i].SpecValue" class="form-control form-control-sm" 
+                                       placeholder="Значение" />
+                            </div>
+                            <div class="col-md-2">
+                                <input asp-for="Specs[i].Unit" class="form-control form-control-sm" 
+                                       placeholder="Ед. изм." />
+                            </div>
+                            <div class="col-md-2">
+                                <input asp-for="Specs[i].SortOrder" class="form-control form-control-sm" 
+                                       placeholder="Порядок" type="number" min="0" />
+                            </div>
+                            <div class="col-md-1 text-center">
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSpec(this)" title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Изображения -->
+        <div class="mt-4 border-top pt-3">
+            <label class="fw-semibold d-flex align-items-center mb-2">
+                <i class="bi bi-images me-2 text-primary"></i>
+                Изображения оборудования
+            </label>
+
+            @if (Model.Images?.Count > 0)
+            {
+                <div id="existingImages" class="d-flex flex-wrap gap-2 mb-3">
+                    @foreach (var img in Model.Images)
+                    {
+                        <div class="border rounded position-relative" style="width:120px;">
+                            <img src="@img.Url" class="img-fluid rounded" style="height:80px;object-fit:cover;" />
+                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle" 
+                                    style="width:20px;height:20px;font-size:10px;padding:0;transform:translate(30%,-30%)"
+                                    onclick="deleteImage(@img.EquipmentImageId, this)" title="Удалить">
+                                ×
+                            </button>
+                            <div class="form-check small ps-2 mt-1">
+                                <input class="form-check-input" type="radio" name="PrimaryImageId"
+                                       value="@img.EquipmentImageId" @(img.IsPrimary ? "checked" : "") 
+                                       id="primary-@img.EquipmentImageId">
+                                <label class="form-check-label small" for="primary-@img.EquipmentImageId">основное</label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="input-group input-group-sm">
+                <input type="file" id="uploadedImages" name="uploadedImages" multiple accept="image/*" 
+                       class="form-control form-control-sm" aria-label="Загрузка изображений">
+                <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('uploadedImages').click()">
+                    <i class="bi bi-folder2-open"></i>
+                </button>
+            </div>
+            <small class="text-muted d-block mt-1">Можно выбрать несколько файлов (JPG, PNG, GIF)</small>
+            
+            <div id="imagePreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+        </div>
+
+        <!-- Публикация и кнопки -->
+        <div class="mt-4 border-top pt-3">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="form-check form-switch">
+                        <input asp-for="IsPublished" class="form-check-input" id="pub" role="switch" />
+                        <label class="form-check-label fw-medium" for="pub">
+                            <i class="bi bi-globe me-1"></i>Опубликовать оборудование
+                        </label>
+                    </div>
+                    <small class="text-muted d-block mt-1">Опубликованное оборудование будет видно всем пользователям</small>
+                </div>
+                
+                <div class="col-md-6 text-end">
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a asp-action="MyEquipment" class="btn btn-sm btn-outline-secondary px-3">
+                            <i class="bi bi-arrow-left me-1"></i>Отмена
+                        </a>
+                        <button id="saveBtn" type="submit" class="btn btn-sm btn-success px-4">
+                            <i class="bi bi-check-circle me-1"></i>@(isEdit ? "Сохранить" : "Добавить")
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('equipmentForm');
+    const manufacturerBlock = document.getElementById('manufacturer-block');
+    const createLink = document.getElementById('create-manufacturer-link');
+    
+    // === Автоматическая подстановка имени созданного завода ===
+    function checkForNewManufacturer() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const manufacturerCreated = urlParams.get('manufacturerCreated');
+        const manufacturerName = urlParams.get('manufacturerName');
+        const manufacturerId = urlParams.get('manufacturerId');
+        
+        if (manufacturerCreated === 'true' && manufacturerName && manufacturerId) {
+            updateManufacturerBlock(manufacturerId, manufacturerName);
+            
+            // Показываем уведомление
+            showNotification(`Завод "${manufacturerName}" успешно создан!`, 'success');
+            
+            // Убираем параметры из URL
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    }
+    
+    function updateManufacturerBlock(id, name) {
+        if (manufacturerBlock && !window.User.isInRole('Admin') && !window.User.isInRole('Manager')) {
+            manufacturerBlock.innerHTML = `
+                <label class="form-label mb-1 fw-semibold d-flex align-items-center">
+                    <i class="bi bi-building me-2 text-primary"></i>
+                    Производитель
+                </label>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="manufacturer-display flex-grow-1">
+                        <div class="manufacturer-badge d-flex align-items-center justify-content-center">
+                            <span class="laurel-left me-2">🌿</span>
+                            <a href="/ManufacturerUser/Edit" class="manufacturer-link text-truncate" title="Редактировать производителя">
+                                ${name}
+                            </a>
+                            <span class="laurel-right ms-2">🌿</span>
+                        </div>
+                        <div class="text-muted small mt-1 text-center">
+                            <i class="bi bi-pencil-square me-1"></i>кликните для редактирования
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" id="ManufacturerId" name="ManufacturerId" value="${id}" />
+            `;
+        }
+    }
+    
+    // === Проверка наличия производителя через API ===
+    async function checkManufacturerFromServer() {
+        try {
+            const response = await fetch('/ManufacturerUser/GetCurrentManufacturer');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.hasManufacturer && data.manufacturerName) {
+                    // Если на странице еще не отображен производитель
+                    if (!document.querySelector('.manufacturer-badge') && manufacturerBlock) {
+                        updateManufacturerBlock(data.manufacturerId, data.manufacturerName);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error checking manufacturer:', error);
+        }
+    }
+    
+    // === Инициализация ===
+    checkForNewManufacturer();
+    checkManufacturerFromServer();
+    
+    // === Характеристики оборудования ===
+    let specIndex = @Model.Specs.Count;
+    
+    window.addSpec = function() {
+        const container = document.getElementById('specs-container');
+        const template = `
+            <div class="spec-row mb-2">
+                <div class="row g-2 align-items-center">
+                    <input type="hidden" name="Specs[${specIndex}].EquipmentSpecId" value="0" />
+                    <div class="col-md-4">
+                        <input name="Specs[${specIndex}].SpecKey" class="form-control form-control-sm" 
+                               placeholder="Параметр (например, Мощность)" />
+                    </div>
+                    <div class="col-md-3">
+                        <input name="Specs[${specIndex}].SpecValue" class="form-control form-control-sm" 
+                               placeholder="Значение" />
+                    </div>
+                    <div class="col-md-2">
+                        <input name="Specs[${specIndex}].Unit" class="form-control form-control-sm" 
+                               placeholder="Ед. изм." />
+                    </div>
+                    <div class="col-md-2">
+                        <input name="Specs[${specIndex}].SortOrder" class="form-control form-control-sm" 
+                               placeholder="Порядок" type="number" min="0" value="${specIndex + 1}" />
+                    </div>
+                    <div class="col-md-1 text-center">
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSpec(this)" title="Удалить">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', template);
+        specIndex++;
+        
+        // Прокрутка к добавленной характеристике
+        const newSpec = container.lastElementChild;
+        newSpec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+    
+    window.removeSpec = function(btn) {
+        const specRow = btn.closest('.spec-row');
+        if (specRow) {
+            specRow.style.opacity = '0';
+            specRow.style.transform = 'translateX(-10px)';
+            setTimeout(() => specRow.remove(), 300);
+        }
+    };
+    
+    // === Изображения ===
+    const fileInput = document.getElementById('uploadedImages');
+    const preview = document.getElementById('imagePreview');
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            preview.innerHTML = '';
+            Array.from(this.files).forEach((file, idx) => {
+                if (!file.type.startsWith('image/')) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'position-relative border rounded';
+                    div.style.width = '100px';
+                    div.style.height = '80px';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="img-fluid rounded" 
+                             style="width:100%;height:100%;object-fit:cover;" />
+                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle" 
+                                style="width:18px;height:18px;font-size:10px;padding:0;transform:translate(30%,-30%)" 
+                                onclick="removePreview(${idx})" title="Удалить">
+                            ×
+                        </button>`;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    }
+    
+    window.removePreview = function(idx) {
+        const dt = new DataTransfer();
+        const files = Array.from(fileInput.files);
+        files.splice(idx, 1);
+        files.forEach(f => dt.items.add(f));
+        fileInput.files = dt.files;
+        fileInput.dispatchEvent(new Event('change'));
+    };
+    
+    // === Удаление существующего изображения ===
+    window.deleteImage = async function(id, btn) {
+        if (!confirm('Удалить это изображение?')) return;
+        
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const response = await fetch(`/Equipment/DeleteImage/${id}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'RequestVerificationToken': token || ''
+                }
+            });
+            
+            if (response.ok) {
+                const imgContainer = btn.closest('.border.rounded');
+                imgContainer.style.opacity = '0';
+                imgContainer.style.transform = 'scale(0.8)';
+                setTimeout(() => imgContainer.remove(), 300);
+                showNotification('Изображение удалено', 'success');
+            }
+        } catch (error) {
+            showNotification('Ошибка при удалении', 'danger');
+        }
+    };
+    
+    // === Валидация и отправка формы ===
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const saveBtn = document.getElementById('saveBtn');
+        const originalText = saveBtn.innerHTML;
+        
+        // Валидация обязательных полей
+        const requiredFields = [
+            { selector: 'input[name="Name"]', message: 'Введите название оборудования' },
+            { selector: 'select[name="IndustryId"]', message: 'Выберите отрасль' },
+            { selector: 'select[name="EquipmentCategoryId"]', message: 'Выберите категорию' }
+        ];
+        
+        let isValid = true;
+        for (const field of requiredFields) {
+            const element = form.querySelector(field.selector);
+            if (!element || !element.value.trim()) {
+                showNotification(field.message, 'warning');
+                element?.focus();
+                element?.classList.add('is-invalid');
+                isValid = false;
+                break;
+            }
+        }
+        
+        if (!isValid) return;
+        
+        // Показать состояние загрузки
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Сохранение...';
+        
+        try {
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
+                    showNotification(result.message || 'Сохранено успешно!', 'success');
+                    setTimeout(() => {
+                        window.location.href = result.redirectUrl || '/Equipment/MyEquipment';
+                    }, 1500);
+                } else {
+                    showNotification(result.message || 'Ошибка при сохранении', 'danger');
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalText;
+                }
+            }
+        } catch (error) {
+            showNotification('Ошибка сети: ' + error.message, 'danger');
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalText;
+        }
+    });
+    
+    // === Вспомогательные функции ===
+    function showNotification(message, type = 'info') {
+        // Создаем простое уведомление без Toast
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            min-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            border: none;
+        `;
+        
+        notification.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="bi ${type === 'success' ? 'bi-check-circle-fill' : type === 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill'} me-2"></i>
+                <div class="flex-grow-1">${message}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Автоматическое закрытие через 4 секунды
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(notification);
+            bsAlert.close();
+        }, 4000);
+    }
+    
+    // Удаление класса is-invalid при вводе
+    form.querySelectorAll('input, select, textarea').forEach(element => {
+        element.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        });
+    });
+});
+
+// Глобальная переменная для проверки ролей
+window.User = {
+    isInRole: function(role) {
+        return @Html.Raw(Json.Serialize(User.IsInRole("Admin") || User.IsInRole("Manager")));
+    }
+};
+</script>
+}

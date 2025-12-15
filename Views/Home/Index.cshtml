@@ -1,0 +1,208 @@
+@using Microsoft.AspNetCore.Identity
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@model FoodTech.ViewModels.EquipmentIndexVm
+
+@{
+    ViewData["Title"] = "Каталог оборудования";
+}
+@{
+    var pageSizes = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "12", Text = "12", Selected = Model?.Filter?.PageSize == 12 },
+        new SelectListItem { Value = "24", Text = "24", Selected = Model?.Filter?.PageSize == 24 },
+        new SelectListItem { Value = "48", Text = "48", Selected = Model?.Filter?.PageSize == 48 },
+    };
+}
+
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Каталог оборудования</h1>
+    <div class="text-muted">
+        Найдено: @(Model.Pagination?.TotalItems ?? 0) товаров
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Левая панель фильтров -->
+    <div class="col-lg-3 col-md-4">
+        <div class="p-3 bg-white border rounded-4 shadow-sm position-relative">
+            @await Html.PartialAsync("_FilterPartial", Model.Filter, new ViewDataDictionary(ViewData)
+            {
+                ["Industries"] = Model.Industries,
+                ["Categories"] = Model.Categories,
+                ["Manufacturers"] = Model.Manufacturers
+            })
+        </div>
+
+        @if (Model.HotOffers?.Any() == true)
+        {
+            <div class="mt-4 bg-white border rounded-4 shadow-sm p-3">
+                <h6 class="text-primary fw-semibold mb-3 d-flex align-items-center">
+                    <i class="bi bi-fire text-danger me-2"></i> Горячие предложения
+                </h6>
+
+                <div class="list-group list-group-flush small">
+                    @foreach (var offer in Model.HotOffers)
+                    {
+                        var url = Url.Action("Details", "Equipment", new { id = offer.EquipmentId });
+
+                        <a href="@url"
+                           class="list-group-item list-group-item-action border-0 rounded px-2 py-2 mb-1 bg-light-subtle hover-bg-light d-flex flex-column"
+                           style="transition: background-color 0.2s ease;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold text-dark text-truncate" title="@offer.Name">@offer.Name</span>
+                                @if (!string.IsNullOrEmpty(offer.Model))
+                                {
+                                    <small class="text-muted ms-2">@offer.Model</small>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(offer.ShortDescription))
+                            {
+                                <small class="text-muted mt-1 text-truncate">
+                                    @(offer.ShortDescription.Length > 60 
+                                        ? offer.ShortDescription.Substring(0, 60) + "..." 
+                                        : offer.ShortDescription)
+                                </small>
+                            }
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Правая панель: управление + контент -->
+    <div class="col-lg-9 col-md-8">
+        <!-- Верхняя панель с информацией и переключателем вида -->
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3 py-2 px-3 bg-white border rounded-4 shadow-sm">
+            <!-- Информация о странице -->
+            <div class="text-muted small fw-medium">
+                Страница <span class="text-dark">@(Model.Pagination?.CurrentPage ?? 1)</span> 
+                из <span class="text-dark">@(Model.Pagination?.TotalPages ?? 1)</span>
+            </div>
+
+            <!-- Панель управления -->
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <!-- Кол-во элементов -->
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small">Элементов:</span>
+                    <select asp-for="Filter.PageSize"
+        asp-items="pageSizes"
+        class="form-select form-select-sm border-0 shadow-sm bg-light rounded-3"
+        style="width: 80px;"
+        onchange="location.href='@Url.Action("Index", new { pageSize = "__ps__" })'.replace('__ps__', this.value)">
+</select>
+
+                </div>
+
+                <!-- Переключатель вида -->
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="view-mode" id="card-view" autocomplete="off" checked>
+                    <label class="btn btn-outline-primary px-2 py-1" for="card-view" title="Вид карточками">
+                        <i class="bi bi-grid"></i>
+                    </label>
+
+                    <input type="radio" class="btn-check" name="view-mode" id="list-view" autocomplete="off">
+                    <label class="btn btn-outline-primary px-2 py-1" for="list-view" title="Вид списком">
+                        <i class="bi bi-list-task"></i>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Контент: карточки/список -->
+        @await Html.PartialAsync("_EquipmentGridPartial", Model.Items ?? new List<FoodTech.ViewModels.EquipmentListItemVm>())
+
+        <!-- Пагинация -->
+        @if ((Model.Pagination?.TotalPages ?? 1) > 1)
+        {
+            <div class="mt-4">
+                @await Html.PartialAsync("_PaginationPartial", Model.Pagination)
+            </div>
+        }
+    </div>
+</div>
+@section Scripts {
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const tabs = document.querySelectorAll("#adminTabs .nav-link");
+    const container = document.getElementById("tabContent");
+
+    // 🔥 Единая карта маршрутов
+    const routeMap = {
+        EditUsers: "/admin/users",
+        EditRequests: "/admin/requests",
+        EditIndustries: "/admin/industries",
+        EditCategories: "/admin/categories",
+        EditManufacturer: "/admin/manufacturers"
+    };
+
+    // ====================================================================
+    // 📂 ЗАГРУЗКА ВКЛАДКИ
+    // ====================================================================
+    async function loadTab(tabName) {
+
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary"></div>
+                <div class="mt-2">Загрузка ${tabName}...</div>
+            </div>`;
+
+        try {
+            const url = routeMap[tabName];
+            if (!url) throw new Error("Маршрут для вкладки не найден");
+
+            const resp = await fetch(url, {
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+            const html = await resp.text();
+            container.innerHTML = html;
+
+            // Переключаем активную вкладку
+            tabs.forEach(t => t.classList.remove("active"));
+            document.querySelector(`[data-tab="${tabName}"]`)?.classList.add("active");
+
+            // Инициализация partial
+            PartialManager.init(tabName, container);
+
+        } catch (err) {
+            console.error("Ошибка загрузки вкладки:", err);
+
+            container.innerHTML = `
+                <div class="alert alert-danger">
+                    Ошибка загрузки вкладки "${tabName}"
+                </div>`;
+        }
+    }
+
+    // ====================================================================
+    // 🟦 КЛИКИ ПО ВКЛАДКАМ
+    // ====================================================================
+    tabs.forEach(tab => {
+        tab.addEventListener("click", e => {
+            e.preventDefault();
+
+            const tabName = tab.dataset.tab;
+            if (!tabName) return;
+
+            if (!tab.classList.contains("active")) {
+                loadTab(tabName);
+                localStorage.setItem("activeTab", tabName);
+            }
+        });
+    });
+
+    // ====================================================================
+    // 🚀 СТАРТОВАЯ ЗАГРУЗКА
+    // ====================================================================
+    const saved = localStorage.getItem("activeTab");
+    const firstTab = document.querySelector("#adminTabs .nav-link")?.dataset.tab;
+
+    const initialTab = saved || firstTab;
+    if (initialTab) loadTab(initialTab);
+});
+</script>
+}

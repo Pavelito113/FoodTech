@@ -1,0 +1,206 @@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Панель управления";
+    var isAdmin = User.IsInRole("Admin");
+    var isManager = User.IsInRole("Manager");
+    var isUser = User.IsInRole("User");
+}
+
+<div class="container mt-4">
+    <h4 class="mb-4 d-flex align-items-center gap-2">
+        <i class="bi bi-speedometer2 text-primary"></i>
+        Панель управления
+    </h4>
+
+    <ul class="nav nav-tabs" id="adminTabs">
+        @if (isAdmin)
+        {
+            <li class="nav-item">
+                <a class="nav-link active" data-tab="EditUsers">Пользователи</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-tab="RequestManagement">Запросы</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-tab="EditIndustries">Отрасли</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-tab="EditCategories">Категории</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-tab="EditManufacturer">Заводы</a>
+            </li>
+        }
+        else if (isManager)
+        {
+            <li class="nav-item">
+                <a class="nav-link active" data-tab="RequestManagement">Запросы</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-tab="EditIndustries">Отрасли</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-tab="EditCategories">Категории</a>
+            </li>
+        }
+        else if (isUser)
+        {
+            <li class="nav-item">
+                <a class="nav-link active" data-tab="MyRequests">Мои запросы</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-tab="MyManufacturer">Мой завод</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-tab="EditIndustries">Отрасли</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-tab="EditCategories">Категории</a>
+            </li>
+        }
+    </ul>
+
+    <div id="tabContent" class="mt-3"></div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const tabs = document.querySelectorAll("#adminTabs .nav-link");
+            const container = document.getElementById("tabContent");
+
+            // Маршруты для разных ролей
+            const routeMap = {
+                // Общие для всех ролей
+                "EditIndustries": "/admin/industries",
+                "EditCategories": "/admin/categories",
+                
+                // Для Admin/Manager
+                "EditUsers": "/admin/users",
+                "RequestManagement": "/admin/requests",
+                "EditManufacturer": "/admin/manufacturers",
+                
+                // Для User
+                "MyRequests": "/admin/requests/my-requests",
+                "MyManufacturer": "/my-manufacturer/edit"
+            };
+
+            const initMap = {
+                "EditIndustries": window.initEditIndustries,
+                "EditCategories": window.initEditCategories,
+                "EditManufacturer": window.initEditManufacturer,
+                "EditUsers": window.initEditUsers,
+                "RequestManagement": window.initRequestManagement,
+                "MyRequests": window.initMyRequests,
+                "MyManufacturer": window.initMyManufacturer
+            };
+
+            async function loadTab(tabName) {
+                console.log(`📂 Загрузка вкладки: ${tabName}`);
+
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2 text-muted">Загрузка ${tabName}...</div>
+                    </div>`;
+
+                try {
+                    const url = routeMap[tabName];
+                    if (!url) throw new Error(`Маршрут для вкладки '${tabName}' не найден`);
+
+                    const resp = await fetch(url, {
+                        method: "GET",
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest",
+                            "Accept": "text/html"
+                        },
+                        credentials: "include"
+                    });
+
+                    if (!resp.ok) {
+                        if (resp.status === 403) {
+                            throw new Error("Доступ запрещен. У вас нет прав для просмотра этой вкладки.");
+                        }
+                        if (resp.status === 404) {
+                            throw new Error("Страница не найдена. Возможно, контроллер или метод не существует.");
+                        }
+                        throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+                    }
+
+                    const html = await resp.text();
+                    container.innerHTML = html;
+
+                    // Обновление активной вкладки
+                    tabs.forEach(t => t.classList.remove("active"));
+                    const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
+                    if (activeTab) {
+                        activeTab.classList.add("active");
+                    }
+
+                    console.log(`✅ Вкладка "${tabName}" загружена`);
+
+                    // Инициализация через PartialManager или аварийно
+                    if (window.PartialManager && typeof window.PartialManager.init === "function") {
+                        window.PartialManager.init(tabName, container);
+                    } else {
+                        emergencyInit(tabName, container);
+                    }
+
+                } catch (err) {
+                    console.error("❌ Ошибка загрузки вкладки:", err);
+                    container.innerHTML = `
+                        <div class="alert alert-danger mt-3">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Ошибка загрузки вкладки:</strong> ${err.message}
+                            <div class="mt-2">
+                                <small>URL: ${routeMap[tabName] || 'не определен'}</small>
+                                <br>
+                                <small>Роль: @User.Identity?.Name</small>
+                            </div>
+                            <div class="mt-2">
+                                <a href="javascript:location.reload()" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-arrow-clockwise"></i> Обновить страницу
+                                </a>
+                            </div>
+                        </div>`;
+                }
+            }
+
+            function emergencyInit(tabName, container) {
+                console.log(`🚨 Аварийная инициализация: ${tabName}`);
+                const initFn = initMap[tabName];
+                if (initFn && typeof initFn === "function") {
+                    try {
+                        initFn(container);
+                        console.log(`✅ Аварийная инициализация ${tabName} успешна`);
+                    } catch (err) {
+                        console.error(`❌ Ошибка аварийной инициализации ${tabName}:`, err);
+                    }
+                } else {
+                    console.warn(`⚠️ Функция инициализации для ${tabName} не найдена`);
+                }
+            }
+
+            // Обработчик клика
+            tabs.forEach(tab => {
+                tab.addEventListener("click", e => {
+                    e.preventDefault();
+                    const tabName = tab.dataset.tab;
+                    if (!tab.classList.contains("active")) {
+                        loadTab(tabName);
+                        localStorage.setItem("activeTab", tabName);
+                    }
+                });
+            });
+
+            // Определяем вкладку для загрузки: сохранённая или по умолчанию
+            const defaultTab = document.querySelector("#adminTabs .nav-link.active")?.dataset.tab;
+            const firstTab = document.querySelector("#adminTabs .nav-link")?.dataset.tab;
+            const activeTabName = localStorage.getItem("activeTab") || defaultTab || firstTab;
+
+            if (activeTabName) {
+                loadTab(activeTabName);
+            }
+        });
+    </script>
+}

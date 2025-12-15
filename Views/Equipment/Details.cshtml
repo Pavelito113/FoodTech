@@ -1,0 +1,119 @@
+@model FoodTech.ViewModels.EquipmentDetailsVm
+@{
+    ViewData["Title"] = Model.Name;
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var isAuthor = !string.IsNullOrEmpty(currentUserId) && currentUserId == Model.CreatedByUserId;
+    var isAdmin = User.IsInRole("Admin");
+    var canEdit = isAuthor || isAdmin;
+}
+
+<div class="row g-3">
+    <div class="col-md-6">
+        @if (Model.Images.Any())
+        {
+            var primaryImage = Model.Images.FirstOrDefault(i => i.IsPrimary) ?? Model.Images.OrderBy(i => i.SortOrder).First();
+            <div class="mb-2">
+                <img src="@primaryImage.Url"
+                     alt="@(primaryImage.AltText ?? Model.Name)"
+                     class="img-fluid rounded shadow-sm" />
+            </div>
+
+            @if (Model.Images.Count > 1)
+            {
+                <div class="row g-2">
+                    @foreach (var image in Model.Images.OrderBy(i => i.SortOrder))
+                    {
+                        <div class="col-3">
+                            <img src="@image.Url"
+                                 alt="@(image.AltText ?? Model.Name)"
+                                 class="img-thumbnail @(image.IsPrimary ? "border-primary" : "")"
+                                 style="cursor:pointer;height:70px;object-fit:cover;width:100%;" />
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+
+    <div class="col-md-6">
+        <h1 class="h4 mb-1">@Model.Name</h1>
+
+        @if (!string.IsNullOrEmpty(Model.Model))
+        {
+            <div class="text-muted mb-2">@Model.Model</div>
+        }
+
+        <div class="mb-2">
+            @if (!string.IsNullOrEmpty(Model.IndustryName))
+            { <span class="badge bg-secondary me-1">@Model.IndustryName</span> }
+            @if (!string.IsNullOrEmpty(Model.CategoryName))
+            { <span class="badge bg-secondary me-1">@Model.CategoryName</span> }
+            @if (!string.IsNullOrEmpty(Model.ManufacturerName))
+            { <span class="badge bg-info">@Model.ManufacturerName</span> }
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.ShortDescription))
+        {
+            <div class="alert alert-info py-2 px-3 small mb-3">@Model.ShortDescription</div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <div class="mb-3">
+                <h6 class="fw-bold mb-1">Описание</h6>
+                <div class="small">@Html.Raw(Model.Description)</div>
+            </div>
+        }
+
+        @if (Model.Specs.Any())
+        {
+            <div class="mb-3">
+                <h6 class="fw-bold mb-1">Характеристики</h6>
+                <table class="table table-sm table-striped mb-2">
+                    <tbody>
+                        @foreach (var spec in Model.Specs.OrderBy(s => s.SortOrder))
+                        {
+                            <tr>
+                                <th class="w-40 small">@spec.SpecKey</th>
+                                <td class="small">@spec.SpecValue @spec.Unit</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <div class="d-flex flex-wrap gap-2 mt-3">
+              @if (User.Identity?.IsAuthenticated == true && canEdit)
+    {
+        <a href="@Url.Action("Edit", "Equipment", new { id = Model.EquipmentId })" 
+           class="btn btn-warning btn-sm">
+            ✏️ Редактировать
+        </a>
+    }
+
+            <button type="button"
+                    class="btn btn-primary btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#contactModal"
+                    data-equipment-id="@Model.EquipmentId"
+                    data-equipment-name="@Model.Name">
+                Запросить
+            </button>
+
+            <a href="@Url.Action("Index", "Home", new {
+                Page = Model.ReturnPage,
+                EquipmentCategoryId = Model.Filter?.EquipmentCategoryId,
+                IndustryId = Model.Filter?.IndustryId,
+                ManufacturerId = Model.Filter?.ManufacturerId,
+                Query = Model.Filter?.Query,
+                SortBy = Model.Filter?.SortBy
+            })"
+               class="btn btn-outline-secondary btn-sm align-self-center btn-return">
+                ← Вернуться в каталог
+            </a>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_ContactFormPartial")

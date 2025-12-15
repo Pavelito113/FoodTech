@@ -1,0 +1,234 @@
+@using Microsoft.AspNetCore.Identity
+@using FoodTech.Models
+@using FoodTech.ViewModels
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FoodTech</title>
+
+    <!-- SEO -->
+    <meta name="description" content="FoodTech — оборудование для пищевой промышленности: фритюрницы, конвейеры, печи, линии полного цикла." />
+
+    <!-- Bootstrap и иконки -->
+    <link rel="stylesheet" href="~/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/bootstrap-icons.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+       <link rel="stylesheet" href="~/css/stylescreate.css" asp-append-version="true" />
+
+      @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <!-- Toast -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Header -->
+    <header>
+    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm px-0">
+        <div class="container">
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" asp-controller="Home" asp-action="Index">
+                <i class="bi bi-gear-fill text-warning"></i> <span>FoodTech</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Меню навигации">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Основные разделы -->
+                <ul class="navbar-nav me-auto gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")"
+                           asp-controller="Home" asp-action="Index">
+                            <i class="bi bi-list-ul"></i> Каталог
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "About" ? "active" : "")"
+                           asp-controller="Home" asp-action="About">
+                            <i class="bi bi-info-circle"></i> О компании
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Privacy" ? "active" : "")"
+                           asp-controller="Home" asp-action="Privacy">
+                            <i class="bi bi-shield-check"></i> Конфиденциальность
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "CreateContactRequest" ? "active" : "")"
+                           asp-controller="Home" asp-action="CreateContactRequest">
+                            <i class="bi bi-envelope"></i> Контакты
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Правый блок: профиль / авторизация / администрирование -->
+                <ul class="navbar-nav align-items-center gap-2">
+
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-light" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i> @User.Identity?.Name
+                            </a>
+
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3">
+                                <li>
+                                    <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index">
+                                        <i class="bi bi-gear"></i> Профиль
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Equipment" asp-action="MyEquipment">
+                                        <i class="bi bi-box"></i> Мои объявления
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-controller="Equipment" asp-action="Create">
+                                        <i class="bi bi-plus-circle"></i> Добавить оборудование
+                                    </a>
+                                </li>
+
+                                <!-- 🔹 Панель управления для Admin и Manager -->
+                                @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                                {
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Admin" asp-action="Index">
+                                            <i class="bi bi-speedometer2"></i> Панель управления
+                                        </a>
+                                    </li>
+                                }
+
+                                <!-- 🔹 Пользователь -->
+                                @if (User.IsInRole("User"))
+                                {
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Requests" asp-action="MyRequests">
+                                            <i class="bi bi-chat-square-dots"></i> Мои запросы
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Requests" asp-action="AddManufacturer">
+                                            <i class="bi bi-building"></i> Мой завод
+                                        </a>
+                                    </li>
+                                }
+
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <form class="d-inline" asp-area="Identity" asp-page="/Account/Logout"
+                                          asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            <i class="bi bi-box-arrow-right"></i> Выйти
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- ⚙️ Быстрая иконка панели управления -->
+                        @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-warning" asp-controller="Admin" asp-action="Index" title="Панель управления">
+                                    <i class="bi bi-speedometer2 fs-5"></i>
+                                </a>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">
+                                <i class="bi bi-box-arrow-in-right"></i> Войти
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">
+                                <i class="bi bi-person-plus"></i> Регистрация
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+    <!-- Main -->
+    <main class="container" data-fade>
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto py-4 border-top border-secondary">
+        <div class="container">
+            <div class="row gy-4">
+                <div class="col-md-4">
+                    <h5>FoodTech</h5>
+                    <p>Оборудование для пищевой промышленности</p>
+                    <p><i class="bi bi-telephone"></i> +7 (495) 123-45-67</p>
+                    <p><i class="bi bi-envelope"></i> info@foodtech.ru</p>
+                </div>
+
+                <div class="col-md-4">
+                    <h5>Навигация</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><a asp-controller="Home" asp-action="Index">Главная</a></li>
+                        <li><a asp-controller="Home" asp-action="Index">Каталог</a></li>
+                        <li><a asp-controller="Home" asp-action="About">О компании</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy">Конфиденциальность</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-md-4">
+                    <h5>Мы в соцсетях</h5>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-light"><i class="bi bi-telegram fs-4"></i></a>
+                        <a href="#" class="text-light"><i class="bi bi-whatsapp fs-4"></i></a>
+                        <a href="#" class="text-light"><i class="bi bi-vk fs-4"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-3 border-secondary" />
+            <div class="text-center small">&copy; @DateTime.Now.Year — <strong>FoodTech</strong>. Все права защищены.</div>
+        </div>
+    </footer>
+
+    <!-- Скрипты -->
+    <script src="~/js/lib/jquery-3.7.1.min.js"></script>
+    <script src="~/js/lib/jquery.validate.min.js"></script>
+    <script src="~/js/lib/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/contact-form-handler.js" asp-append-version="true"></script>
+<script src="~/js/partialManager.js" asp-append-version="true"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script src="~/js/EditUsers.js" asp-append-version="true"></script>
+<script src="~/js/EditRequests.js" asp-append-version="true"></script>
+<script src="~/js/EditManufacturer.js" asp-append-version="true"></script>
+<script src="~/js/EditIndustries.js" asp-append-version="true"></script>
+<script src="~/js/EditCategories.js" asp-append-version="true"></script>
+
+    <script>
+        window.isAuthenticated = @(User?.Identity?.IsAuthenticated == true ? "true" : "false");
+        window.requestCreateUrl = '@Url.Action("RequestCreate", "Home")';
+    </script>
+    
+        @await Html.PartialAsync("_ContactFormPartial")
+        @await Html.PartialAsync("_UserModals")
+   
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

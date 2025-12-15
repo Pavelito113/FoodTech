@@ -1,0 +1,90 @@
+@using FoodTech.ViewModels
+
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+@{
+    var user = HttpContextAccessor.HttpContext?.User;
+    bool canSeeManufacturers = user != null && (user.IsInRole("Admin") || user.IsInRole("Agent"));
+
+    var industries = ViewData["Industries"] as List<LookupItem> ?? new List<LookupItem>();
+    var categories = ViewData["Categories"] as List<LookupItem> ?? new List<LookupItem>();
+    var manufacturers = ViewData["Manufacturers"] as List<LookupItem> ?? new List<LookupItem>();
+
+    // Сохраняем выбранные значения фильтров
+    var selectedQuery = Model.Query ?? "";
+    var selectedIndustryId = Model.IndustryId;
+    var selectedCategoryId = Model.EquipmentCategoryId;
+    var selectedManufacturerId = Model.ManufacturerId;
+}
+<div class="equipment-filters sticky">
+<form method="get" asp-action="Index" asp-controller="Home">
+
+    <!-- Поиск по названию -->
+    <div class="mb-3">
+        <label for="query" class="form-label">Поиск</label>
+        <input type="text" id="query" name="Query" class="form-control" value="@selectedQuery" />
+    </div>
+
+    <!-- Фильтр по отраслям -->
+    <div class="mb-3">
+        <label for="industryFilter" class="form-label">Отрасль</label>
+        <select id="industryFilter" name="IndustryId" class="form-select">
+            <option value="">Все отрасли</option>
+            @foreach (var i in industries)
+            {
+                if (i.Id == selectedIndustryId)
+                {
+                    <option value="@i.Id" selected>@i.Name</option>
+                }
+                else
+                {
+                    <option value="@i.Id">@i.Name</option>
+                }
+            }
+        </select>
+    </div>
+
+    <!-- Фильтр по категориям -->
+    <div class="mb-3">
+        <label for="categoryFilter" class="form-label">Категория</label>
+        <select id="categoryFilter" name="EquipmentCategoryId" class="form-select">
+            <option value="">Все категории</option>
+            @foreach (var c in categories)
+            {
+                if (c.Id == selectedCategoryId)
+                {
+                    <option value="@c.Id" selected>@c.Name</option>
+                }
+                else
+                {
+                    <option value="@c.Id">@c.Name</option>
+                }
+            }
+        </select>
+    </div>
+
+    <!-- Фильтр по производителям (только для Admin и Agent) -->
+    @if (canSeeManufacturers)
+    {
+        <div class="mb-3">
+            <label for="manufacturerFilter" class="form-label">Производитель</label>
+            <select id="manufacturerFilter" name="ManufacturerId" class="form-select">
+                <option value="">Все производители</option>
+                @foreach (var m in manufacturers)
+                {
+                    if (m.Id == selectedManufacturerId)
+                    {
+                        <option value="@m.Id" selected>@m.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@m.Id">@m.Name</option>
+                    }
+                }
+            </select>
+        </div>
+    }
+
+    <button type="submit" class="btn btn-primary w-100">Применить фильтры</button>
+</form>
+</div>

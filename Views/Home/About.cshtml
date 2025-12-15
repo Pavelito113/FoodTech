@@ -1,0 +1,96 @@
+@{
+    ViewData["Title"] = "О компании";
+}
+
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <h1>@ViewData["Title"]</h1>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h3>FoodTech - ваш надежный партнер в пищевой промышленности</h3>
+                        <p class="lead">Мы специализируемся на поставках современного оборудования для пищевой промышленности уже более 15 лет.</p>
+                        <p>Наша компания предлагает комплексные решения для предприятий различных масштабов - от небольших производств до крупных промышленных комплексов.</p>
+                    </div>
+                    <div class="col-md-6 text-center">
+                        <div class="bg-light rounded p-5">
+                            <i class="bi bi-gear-fill display-1 text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="bi bi-shield-check display-4 text-success mb-3"></i>
+                        <h5>Качество</h5>
+                        <p>Все оборудование проходит тщательную проверку и сертификацию</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="bi bi-headset display-4 text-primary mb-3"></i>
+                        <h5>Поддержка</h5>
+                        <p>Круглосуточная техническая поддержка и сервисное обслуживание</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="bi bi-truck display-4 text-warning mb-3"></i>
+                        <h5>Доставка</h5>
+                        <p>Быстрая доставка по всей России и странам СНГ</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4>Наши преимущества</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i> Широкий ассортимент оборудования</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i> Профессиональные консультации</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i> Гарантия на все оборудование</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i> Индивидуальный подход к каждому клиенту</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i> Техническая документация на русском языке</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i> Обучение персонала работе с оборудованием</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <a asp-action="Index" class="btn btn-primary btn-lg">
+                <i class="bi bi-cart"></i> Перейти в каталог
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: transform 0.2s;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+    }
+</style>

@@ -1,0 +1,176 @@
+@model FoodTech.ViewModels.ContactRequestVm
+@inject FoodTech.Services.UserClaimsService UserClaimsService
+
+@{
+    var userInfo = await UserClaimsService.GetUserInfoAsync();
+    bool isAuth = !string.IsNullOrWhiteSpace(userInfo.Name);
+    
+    if (isAuth)
+    {
+        Model.Name = userInfo.Name ?? string.Empty;
+        Model.Email = userInfo.Email ?? string.Empty;
+        Model.Phone = userInfo.Phone ?? string.Empty;
+        Model.Company = userInfo.Company ?? string.Empty;
+    }
+
+    // Получаем значения для атрибутов readonly
+    var readonlyAttr = isAuth ? "readonly" : "";
+    
+    ViewData["Title"] = "Обратная связь";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2>Общая форма обратной связи</h2>
+            
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show">
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            
+            <div class="text-muted mb-4">
+                <i class="bi bi-info-circle"></i> Заполните форму ниже, и наш специалист свяжется с вами в ближайшее время.
+            </div>
+        </div>
+    </div>
+
+    <form id="generalContactForm" method="post" novalidate>
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="EquipmentId" value="" />
+        <input type="hidden" asp-for="EquipmentName" value="Общий вопрос" />
+        <input type="hidden" asp-for="Status" value="New" />
+
+        <div class="row">
+            <!-- Левая колонка - контактные данные -->
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Ваши контактные данные</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label required"></label>
+                            <input asp-for="Name" class="form-control" 
+                                   placeholder="Ваше имя" 
+                                   readonly="@readonlyAttr" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                            <div class="field-error" id="nameError"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" type="email" class="form-control" 
+                                   placeholder="example@mail.ru" 
+                                   readonly="@readonlyAttr" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                            <div class="field-error" id="emailError"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Phone" class="form-label"></label>
+                            <input asp-for="Phone" type="tel" class="form-control" 
+                                   placeholder="+7 (999) 123-45-67" 
+                                   readonly="@readonlyAttr" />
+                            <span asp-validation-for="Phone" class="text-danger small"></span>
+                            <div class="field-error" id="phoneError"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Company" class="form-label"></label>
+                            <input asp-for="Company" class="form-control" 
+                                   placeholder="Название компании" 
+                                   readonly="@readonlyAttr" />
+                            <span asp-validation-for="Company" class="text-danger small"></span>
+                        </div>
+                        
+                        @if (!isAuth)
+                        {
+                            <div class="form-check mt-3">
+                                <input type="checkbox" class="form-check-input" id="AgreeTerms" required />
+                                <label class="form-check-label small" for="AgreeTerms">
+                                    Я согласен с <a href="/Home/Privacy" target="_blank">политикой конфиденциальности</a>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="field-error" id="termsError"></div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка - сообщение -->
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Ваше сообщение</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="Message" class="form-label required"></label>
+                            <textarea asp-for="Message" class="form-control" rows="12" 
+                                      placeholder="Опишите ваш вопрос, предложение или заявку подробно..."></textarea>
+                            <span asp-validation-for="Message" class="text-danger small"></span>
+                            <div class="field-error" id="messageError"></div>
+                            <div class="text-muted small mt-1">Максимум 800 символов</div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-clock me-2"></i>
+                            <strong>Время ответа:</strong> Мы отвечаем в течение 24 часов в рабочие дни.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                        <span class="submit-text">Отправить сообщение</span>
+                        <span class="spinner-border spinner-border-sm d-none ms-2"></span>
+                    </button>
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">
+                        Вернуться на главную
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form-label.required::after {
+        content: " *";
+        color: #dc3545;
+    }
+    .field-error {
+        font-size: 0.85rem;
+        color: #dc3545;
+        min-height: 1.2rem;
+    }
+    .card {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        font-weight: 600;
+    }
+    input[readonly], textarea[readonly] {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+    }
+</style>
+@section Scripts {
+    <script src="~/js/generalContactForm.js" asp-append-version="true"></script>
+}
